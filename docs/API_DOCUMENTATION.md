@@ -318,7 +318,7 @@ VALUES ('aboutus', '關於我們', 4, '1', 1);
 | web_bg | 背景圖片檔名 | "th-plaid52.gif" | 檔名 |
 | bg_repeat | 背景重複模式 | "repeat", "no-repeat", "repeat-x", "repeat-y" | CSS 值 |
 | bg_attachment | 背景附加模式 | "scroll", "fixed" | CSS 值 |
-| bg_postiton | 背景位置 | "left top", "center center" | CSS 值 |
+| bg_postiton | 背景位置（註：原始欄位名稱拼寫為 postiton） | "left top", "center center" | CSS 值 |
 | bg_size | 背景大小 | "cover", "contain", "auto" | CSS 值 |
 | head_top | 標題圖上方位移 | "-387" | 像素 |
 | head_left | 標題圖左方位移 | "0" | 像素 |
@@ -430,6 +430,10 @@ SELECT @WebID AS 'Created WebID';
 6. **必要後續處理**：
    - 建立網站後，系統通常會執行額外的初始化工作（如建立 logo）
    - 直接使用 SQL 建立時，可能需要手動執行這些初始化步驟
+
+7. **欄位拼寫**：
+   - 注意 `bg_postiton` 欄位名稱在原始系統中確實拼寫為 "postiton" 而非 "position"
+   - 這是系統的原始設計，使用時請依照文檔中的拼寫方式
 
 ---
 
