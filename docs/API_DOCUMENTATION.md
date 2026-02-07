@@ -50,17 +50,38 @@ Tad Web 是一個多人網頁系統，主要包含以下資料表：
 # 首先需要取得登入的 Cookie（需要有管理員權限）
 # 假設您已經有 XOOPS 的 session cookie
 
+# 方法一：使用 -F 選項（推薦，模擬 multipart/form-data）
 curl -X POST "https://your-domain.com/modules/tad_web/admin/main.php" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -H "Cookie: XOOPS_SESSION_ID=your_session_id" \
+  -H "Cookie: xoops_session_69853b2b=your_session_id" \
+  -F "op=insert_tad_web" \
+  -F "WebName=地中海型貧血 (Thalassemia)" \
+  -F "WebOwnerUid=2" \
+  -F "WebTitle=網管測試帳號甲的專用網頁" \
+  -F "CateID=0" \
+  -F "WebSort=0" \
+  -F "WebEnable=1" \
+  -F "year=2026"
+
+# 方法二：使用 -d 選項（application/x-www-form-urlencoded）
+# 注意：某些欄位可能需要使用 --data-urlencode 以確保正確編碼
+curl -X POST "https://your-domain.com/modules/tad_web/admin/main.php" \
+  -H "Cookie: xoops_session_69853b2b=your_session_id" \
   -d "op=insert_tad_web" \
-  -d "WebName=地中海型貧血 (Thalassemia)" \
+  --data-urlencode "WebName=地中海型貧血 (Thalassemia)" \
   -d "WebOwnerUid=2" \
-  -d "WebTitle=網管測試帳號甲的專用網頁" \
+  --data-urlencode "WebTitle=網管測試帳號甲的專用網頁" \
   -d "CateID=0" \
   -d "WebSort=0" \
+  -d "WebEnable=1" \
   -d "year=2026"
 ```
+
+**重要提示**：
+- Cookie 名稱格式為 `xoops_session_` 加上隨機字串（例如：`xoops_session_69853b2b`）
+- 使用 `-F` 選項會自動設定 `Content-Type: multipart/form-data`，這與瀏覽器表單提交相同
+- 使用 `-d` 選項則使用 `application/x-www-form-urlencoded`，兩種方法都可以使用
+- 中文或特殊字元建議使用 `--data-urlencode` 來確保正確編碼
+- `WebEnable` 參數建議設為 `1`（啟用）
 
 ### 方法二：設定網站配置
 
@@ -85,13 +106,28 @@ curl -X POST "https://your-domain.com/modules/tad_web/admin/main.php" \
 ### 設定網站配置的 cURL 範例
 
 ```bash
+# 使用 -F 選項（multipart/form-data）
 curl -X POST "https://your-domain.com/modules/tad_web/config.php" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -H "Cookie: XOOPS_SESSION_ID=your_session_id" \
+  -H "Cookie: xoops_session_69853b2b=your_session_id" \
+  -F "op=save_config" \
+  -F "WebID=1" \
+  -F "WebName=地中海型貧血 (Thalassemia)" \
+  -F "WebOwner=網管測試帳號甲" \
+  -F "CateID=0" \
+  -F "other_web_url=" \
+  -F "menu_font_size=100%" \
+  -F "theme_side=right" \
+  -F "defalut_theme=for_tad_web_theme_2" \
+  -F "use_simple_menu=1" \
+  -F "login_method[]=auth0"
+
+# 或使用 -d 選項（application/x-www-form-urlencoded）
+curl -X POST "https://your-domain.com/modules/tad_web/config.php" \
+  -H "Cookie: xoops_session_69853b2b=your_session_id" \
   -d "op=save_config" \
   -d "WebID=1" \
-  -d "WebName=地中海型貧血 (Thalassemia)" \
-  -d "WebOwner=網管測試帳號甲" \
+  --data-urlencode "WebName=地中海型貧血 (Thalassemia)" \
+  --data-urlencode "WebOwner=網管測試帳號甲" \
   -d "CateID=0" \
   -d "other_web_url=" \
   -d "menu_font_size=100%" \
@@ -402,6 +438,61 @@ INSERT INTO `tad_web_plugins` (`PluginDirname`, `PluginTitle`, `PluginSort`, `Pl
 -- 完成！顯示建立的 WebID
 SELECT @WebID AS 'Created WebID';
 ```
+
+---
+
+## 常見問題與疑難排解
+
+### 1. cURL 請求無回應或失敗
+
+**問題**：執行 cURL 命令後沒有輸出或收到錯誤訊息。
+
+**解決方案**：
+- 確認 Cookie 名稱正確（格式為 `xoops_session_` 加上隨機字串）
+- 確認 session ID 仍然有效（未過期）
+- 檢查是否有管理員權限
+- 使用 `-v` 選項查看詳細請求資訊：
+  ```bash
+  curl -v -X POST "https://your-domain.com/modules/tad_web/admin/main.php" ...
+  ```
+
+### 2. 中文或特殊字元顯示異常
+
+**問題**：建立的網站名稱或標題中文顯示為亂碼。
+
+**解決方案**：
+- 使用 `--data-urlencode` 選項處理包含中文的欄位
+- 或使用 `-F` 選項（multipart/form-data）
+- 確保終端機使用 UTF-8 編碼
+
+### 3. 找不到 Cookie 值
+
+**問題**：不知道如何取得正確的 session cookie。
+
+**解決方案**：
+1. 使用瀏覽器登入系統
+2. 開啟瀏覽器開發者工具（F12）
+3. 切換到 "Network" 或"網路"分頁
+4. 執行任何操作
+5. 在請求標頭中找到 Cookie，格式類似：`xoops_session_69853b2b=0c53e5df34e6a6a3787e9043feb8b5b0`
+
+### 4. 權限不足錯誤
+
+**問題**：API 回傳權限不足的錯誤。
+
+**解決方案**：
+- 確認使用的帳號具有管理員權限
+- 檢查 session 是否為管理員帳號的 session
+- 確認 session 尚未過期
+
+### 5. WebID 參數問題
+
+**問題**：設定配置時找不到 WebID。
+
+**解決方案**：
+- WebID 是建立網站時自動產生的編號
+- 可以從資料庫查詢：`SELECT WebID, WebName FROM tad_web ORDER BY WebID DESC LIMIT 10;`
+- 或從後台網站列表中查看網址的 WebID 參數
 
 ---
 

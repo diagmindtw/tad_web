@@ -50,17 +50,38 @@ Tad Web is a multi-user web system with the following main database tables:
 # First, obtain login cookie (requires admin privileges)
 # Assuming you have a XOOPS session cookie
 
+# Method 1: Using -F option (Recommended, simulates multipart/form-data)
 curl -X POST "https://your-domain.com/modules/tad_web/admin/main.php" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -H "Cookie: XOOPS_SESSION_ID=your_session_id" \
+  -H "Cookie: xoops_session_69853b2b=your_session_id" \
+  -F "op=insert_tad_web" \
+  -F "WebName=Thalassemia Research Site" \
+  -F "WebOwnerUid=2" \
+  -F "WebTitle=Admin Test Account Website" \
+  -F "CateID=0" \
+  -F "WebSort=0" \
+  -F "WebEnable=1" \
+  -F "year=2026"
+
+# Method 2: Using -d option (application/x-www-form-urlencoded)
+# Note: Some fields may need --data-urlencode for proper encoding
+curl -X POST "https://your-domain.com/modules/tad_web/admin/main.php" \
+  -H "Cookie: xoops_session_69853b2b=your_session_id" \
   -d "op=insert_tad_web" \
-  -d "WebName=Thalassemia Research Site" \
+  --data-urlencode "WebName=Thalassemia Research Site" \
   -d "WebOwnerUid=2" \
-  -d "WebTitle=Admin Test Account Website" \
+  --data-urlencode "WebTitle=Admin Test Account Website" \
   -d "CateID=0" \
   -d "WebSort=0" \
+  -d "WebEnable=1" \
   -d "year=2026"
 ```
+
+**Important Notes**:
+- Cookie name format is `xoops_session_` plus a random string (e.g., `xoops_session_69853b2b`)
+- Using `-F` option automatically sets `Content-Type: multipart/form-data`, matching browser form submission
+- Using `-d` option uses `application/x-www-form-urlencoded`, both methods work
+- For Chinese or special characters, use `--data-urlencode` to ensure proper encoding
+- `WebEnable` parameter should be set to `1` (enabled)
 
 ### Method 2: Configure Site Settings
 
@@ -85,13 +106,28 @@ After creating a site, configure its various settings.
 ### cURL Example for Site Configuration
 
 ```bash
+# Using -F option (multipart/form-data)
 curl -X POST "https://your-domain.com/modules/tad_web/config.php" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -H "Cookie: XOOPS_SESSION_ID=your_session_id" \
+  -H "Cookie: xoops_session_69853b2b=your_session_id" \
+  -F "op=save_config" \
+  -F "WebID=1" \
+  -F "WebName=Thalassemia Research Site" \
+  -F "WebOwner=Admin Test Account" \
+  -F "CateID=0" \
+  -F "other_web_url=" \
+  -F "menu_font_size=100%" \
+  -F "theme_side=right" \
+  -F "defalut_theme=for_tad_web_theme_2" \
+  -F "use_simple_menu=1" \
+  -F "login_method[]=auth0"
+
+# Or using -d option (application/x-www-form-urlencoded)
+curl -X POST "https://your-domain.com/modules/tad_web/config.php" \
+  -H "Cookie: xoops_session_69853b2b=your_session_id" \
   -d "op=save_config" \
   -d "WebID=1" \
-  -d "WebName=Thalassemia Research Site" \
-  -d "WebOwner=Admin Test Account" \
+  --data-urlencode "WebName=Thalassemia Research Site" \
+  --data-urlencode "WebOwner=Admin Test Account" \
   -d "CateID=0" \
   -d "other_web_url=" \
   -d "menu_font_size=100%" \
@@ -402,6 +438,61 @@ INSERT INTO `tad_web_plugins` (`PluginDirname`, `PluginTitle`, `PluginSort`, `Pl
 -- Done! Display the created WebID
 SELECT @WebID AS 'Created WebID';
 ```
+
+---
+
+## Troubleshooting
+
+### 1. cURL Request Has No Response or Fails
+
+**Problem**: No output or error message after executing cURL command.
+
+**Solution**:
+- Verify the Cookie name is correct (format: `xoops_session_` plus random string)
+- Confirm the session ID is still valid (not expired)
+- Check if you have admin privileges
+- Use `-v` option to see detailed request information:
+  ```bash
+  curl -v -X POST "https://your-domain.com/modules/tad_web/admin/main.php" ...
+  ```
+
+### 2. Chinese or Special Characters Display Incorrectly
+
+**Problem**: Site name or title with Chinese characters shows as garbled text.
+
+**Solution**:
+- Use `--data-urlencode` option for fields containing Chinese characters
+- Or use `-F` option (multipart/form-data)
+- Ensure your terminal uses UTF-8 encoding
+
+### 3. Cannot Find Cookie Value
+
+**Problem**: Don't know how to obtain the correct session cookie.
+
+**Solution**:
+1. Login to the system using a browser
+2. Open browser developer tools (F12)
+3. Switch to "Network" tab
+4. Perform any action
+5. Find the Cookie in request headers, format like: `xoops_session_69853b2b=0c53e5df34e6a6a3787e9043feb8b5b0`
+
+### 4. Permission Denied Error
+
+**Problem**: API returns permission denied error.
+
+**Solution**:
+- Confirm the account has admin privileges
+- Check if the session belongs to an admin account
+- Verify the session has not expired
+
+### 5. WebID Parameter Issue
+
+**Problem**: Cannot find WebID when configuring settings.
+
+**Solution**:
+- WebID is automatically generated when creating a site
+- Query from database: `SELECT WebID, WebName FROM tad_web ORDER BY WebID DESC LIMIT 10;`
+- Or check the WebID parameter in the URL from the backend site list
 
 ---
 
